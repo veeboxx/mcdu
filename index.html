@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A320 MCDU Tutorial — FLT 666 KSEA→KPDX</title>
+<link rel="stylesheet" href="css/mcdu.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============================================================
+       TUTORIAL PANEL (LEFT)
+       ============================================================ -->
+  <div class="tutorial-panel">
+    <div class="tutorial-header">
+      <h1>MCDU Flight Plan Tutorial</h1>
+      <div class="flight-info">FLT 666 · KSEA → KPDX · Fenix A320 · FL150</div>
+    </div>
+
+    <div class="tutorial-progress">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text">
+        <span id="stepIndicator">1 / 19</span>
+        <span id="phaseName">BRIEFING</span>
+      </div>
+    </div>
+
+    <!-- OFP Quick Reference -->
+    <div class="ofp-ref" id="ofpRef">
+      <div class="ofp-ref-toggle" onclick="document.getElementById('ofpRef').classList.toggle('open')">
+        <span>OFP Reference</span>
+        <span class="arrow">▾</span>
+      </div>
+      <div class="ofp-ref-body" id="ofpRefContent"></div>
+    </div>
+
+    <div class="tutorial-content" id="tutorialContent"></div>
+
+    <div class="tutorial-nav">
+      <button id="prevBtn" onclick="Tutorial.prevStep()">← Back</button>
+      <button id="nextBtn" class="primary" onclick="Tutorial.skipStep()">Skip →</button>
+      <button id="freeModeBtn" class="btn-free" onclick="Tutorial.toggleFreeMode()">Free Mode</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MCDU PANEL (RIGHT)
+       ============================================================ -->
+  <div class="mcdu-panel">
+    <div class="mcdu-unit">
+      <div class="mcdu-top-label">MCDU 1</div>
+
+      <!-- Screen + LSKs -->
+      <div class="mcdu-display">
+        <!-- Left LSKs -->
+        <div class="lsk-column" id="lskLeft">
+          <div class="lsk-btn" data-lsk="L1" onclick="FMGC.pressLSK('L',1)"></div>
+          <div class="lsk-btn" data-lsk="L2" onclick="FMGC.pressLSK('L',2)"></div>
+          <div class="lsk-btn" data-lsk="L3" onclick="FMGC.pressLSK('L',3)"></div>
+          <div class="lsk-btn" data-lsk="L4" onclick="FMGC.pressLSK('L',4)"></div>
+          <div class="lsk-btn" data-lsk="L5" onclick="FMGC.pressLSK('L',5)"></div>
+          <div class="lsk-btn" data-lsk="L6" onclick="FMGC.pressLSK('L',6)"></div>
+        </div>
+
+        <!-- Screen -->
+        <div class="mcdu-screen" id="mcduScreen"></div>
+
+        <!-- Right LSKs -->
+        <div class="lsk-column" id="lskRight">
+          <div class="lsk-btn" data-lsk="R1" onclick="FMGC.pressLSK('R',1)"></div>
+          <div class="lsk-btn" data-lsk="R2" onclick="FMGC.pressLSK('R',2)"></div>
+          <div class="lsk-btn" data-lsk="R3" onclick="FMGC.pressLSK('R',3)"></div>
+          <div class="lsk-btn" data-lsk="R4" onclick="FMGC.pressLSK('R',4)"></div>
+          <div class="lsk-btn" data-lsk="R5" onclick="FMGC.pressLSK('R',5)"></div>
+          <div class="lsk-btn" data-lsk="R6" onclick="FMGC.pressLSK('R',6)"></div>
+        </div>
+      </div>
+
+      <!-- Page Keys Row 1 -->
+      <div class="mcdu-page-keys">
+        <div class="pg-key" data-key="DIR" onclick="FMGC.pressPageKey('DIR')">DIR</div>
+        <div class="pg-key" data-key="PROG" onclick="FMGC.pressPageKey('PROG')">PROG</div>
+        <div class="pg-key" data-key="PERF" onclick="FMGC.pressPageKey('PERF')">PERF</div>
+        <div class="pg-key" data-key="INIT" onclick="FMGC.pressPageKey('INIT')">INIT</div>
+        <div class="pg-key" data-key="DATA" onclick="FMGC.pressPageKey('DATA')">DATA</div>
+        <div style="width:52px"></div><!-- BRT placeholder -->
+      </div>
+      <!-- Page Keys Row 2 -->
+      <div class="mcdu-page-keys">
+        <div class="pg-key" data-key="F-PLN" onclick="FMGC.pressPageKey('F-PLN')">F‑PLN</div>
+        <div class="pg-key" data-key="RADNAV" onclick="FMGC.pressPageKey('RADNAV')">RAD<br>NAV</div>
+        <div class="pg-key" data-key="FUELPRED" onclick="FMGC.pressPageKey('FUELPRED')">FUEL<br>PRED</div>
+        <div class="pg-key" data-key="SECFPLAN" onclick="FMGC.pressPageKey('SECFPLAN')">SEC<br>F‑PLN</div>
+        <div class="pg-key" data-key="ATCCOMM" onclick="FMGC.pressPageKey('ATCCOMM')">ATC<br>COMM</div>
+        <div class="pg-key" data-key="MCDU" onclick="FMGC.pressPageKey('MCDU')">MCDU<br>MENU</div>
+      </div>
+
+      <!-- Arrow Pad + Alpha/Num Keys -->
+      <div class="mcdu-input-area">
+        <!-- Arrow Pad -->
+        <div class="arrow-pad">
+          <div class="airport-btn" onclick="FMGC.pressPageKey('DATA')">AIR<br>PORT</div>
+          <div class="arrow-grid">
+            <div class="arrow-btn" data-key="ARROW-LEFT" onclick="FMGC.pressArrow('left')">←</div>
+            <div class="arrow-btn" data-key="ARROW-UP" onclick="FMGC.pressArrow('up')">↑</div>
+            <div class="arrow-btn" data-key="ARROW-RIGHT" onclick="FMGC.pressArrow('right')">→</div>
+            <div class="arrow-btn" data-key="ARROW-DOWN" onclick="FMGC.pressArrow('down')">↓</div>
+          </div>
+        </div>
+
+        <!-- Alpha + Number Keys -->
+        <div class="key-grid">
+          <div class="key-row">
+            <div class="k" onclick="FMGC.spType('A')">A</div>
+            <div class="k" onclick="FMGC.spType('B')">B</div>
+            <div class="k" onclick="FMGC.spType('C')">C</div>
+            <div class="k" onclick="FMGC.spType('D')">D</div>
+            <div class="k" onclick="FMGC.spType('E')">E</div>
+          </div>
+          <div class="key-row">
+            <div class="k" onclick="FMGC.spType('F')">F</div>
+            <div class="k" onclick="FMGC.spType('G')">G</div>
+            <div class="k" onclick="FMGC.spType('H')">H</div>
+            <div class="k" onclick="FMGC.spType('I')">I</div>
+            <div class="k" onclick="FMGC.spType('J')">J</div>
+          </div>
+          <div class="key-row">
+            <div class="k" onclick="FMGC.spType('K')">K</div>
+            <div class="k" onclick="FMGC.spType('L')">L</div>
+            <div class="k" onclick="FMGC.spType('M')">M</div>
+            <div class="k" onclick="FMGC.spType('N')">N</div>
+            <div class="k" onclick="FMGC.spType('O')">O</div>
+          </div>
+          <div class="key-row">
+            <div class="k" onclick="FMGC.spType('P')">P</div>
+            <div class="k" onclick="FMGC.spType('Q')">Q</div>
+            <div class="k" onclick="FMGC.spType('R')">R</div>
+            <div class="k" onclick="FMGC.spType('S')">S</div>
+            <div class="k" onclick="FMGC.spType('T')">T</div>
+          </div>
+          <div class="key-row">
+            <div class="k" onclick="FMGC.spType('U')">U</div>
+            <div class="k" onclick="FMGC.spType('V')">V</div>
+            <div class="k" onclick="FMGC.spType('W')">W</div>
+            <div class="k" onclick="FMGC.spType('X')">X</div>
+            <div class="k" onclick="FMGC.spType('Y')">Y</div>
+          </div>
+          <!-- Number row 1 -->
+          <div class="key-row">
+            <div class="k" onclick="FMGC.spType('1')">1</div>
+            <div class="k" onclick="FMGC.spType('2')">2</div>
+            <div class="k" onclick="FMGC.spType('3')">3</div>
+            <div class="k" onclick="FMGC.spType('4')">4</div>
+            <div class="k" onclick="FMGC.spType('5')">5</div>
+          </div>
+          <div class="key-row">
+            <div class="k" onclick="FMGC.spType('6')">6</div>
+            <div class="k" onclick="FMGC.spType('7')">7</div>
+            <div class="k" onclick="FMGC.spType('8')">8</div>
+            <div class="k" onclick="FMGC.spType('9')">9</div>
+            <div class="k" onclick="FMGC.spType('0')">0</div>
+          </div>
+          <!-- Bottom row -->
+          <div class="key-row">
+            <div class="k" onclick="FMGC.spType('.')">.</div>
+            <div class="k" onclick="FMGC.spType('/')">Z</div>
+            <div class="k" onclick="FMGC.spType('/')">/</div>
+            <div class="k wide" onclick="FMGC.spType(' ')">SP</div>
+            <div class="k ovfy-key" data-key="OVFY" onclick="handleOvfy()">OVFY</div>
+            <div class="k amber wide" data-key="CLR" onclick="handleClear()">CLR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="js/fmgc.js"></script>
+<script src="js/tutorial.js"></script>
+<script>
+// ============================================================
+// SCREEN RENDERER — Translates FMGC state to screen display
+// ============================================================
+const Renderer = {
+  render() {
+    const page = FMGC.nav.currentPage;
+    const screen = document.getElementById('mcduScreen');
+    if (!screen) return;
+
+    let html = '';
+    const renderFn = this['page_' + page.replace(/-/g, '_')];
+    if (renderFn) {
+      html = renderFn.call(this);
+    } else {
+      html = this.page_placeholder(page);
+    }
+
+    // Scratchpad
+    html += this.renderScratchpad();
+    screen.innerHTML = html;
+  },
+
+  // ---- Helpers ----
+  title(text, arrows = '') {
+    const arrowHtml = arrows ? `<span class="page-arrows">${arrows}</span>` : '';
+    return `<div class="screen-title c-white">${text}${arrowHtml}</div>`;
+  },
+
+  line(labelL, labelR, dataL, dataR, opts = {}) {
+    const lc = opts.labelColorL || 'c-white';
+    const rc = opts.labelColorR || 'c-white';
+    const dlc = opts.dataColorL || 'c-green';
+    const drc = opts.dataColorR || 'c-green';
+    const dls = opts.dataSizeL || '';
+    const drs = opts.dataSizeR || '';
+    return `
+      <div class="screen-line-pair">
+        <div class="s-label"><span class="${lc}">${labelL || ''}</span><span class="${rc}">${labelR || ''}</span></div>
+        <div class="s-data"><span class="${dlc} ${dls}">${dataL || ''}</span><span class="${drc} ${drs}">${dataR || ''}</span></div>
+      </div>`;
+  },
+
+  bracket(len = 5) {
+    return `<span class="s-bracket">${'□'.repeat(len)}</span>`;
+  },
+
+  renderScratchpad() {
+    const sp = FMGC.spGetDisplay();
+    if (sp.message) {
+      return `<div class="scratchpad"><div class="scratchpad-text sp-message c-${sp.color}">${sp.text}</div></div>`;
+    }
+    const cursor = sp.cursor && !sp.text ? '<span class="sp-cursor"></span>' : '';
+    return `<div class="scratchpad"><div class="scratchpad-text c-white">${sp.text}${cursor}</div></div>`;
+  },
+
+  // ============================================================
+  // PAGE RENDERERS
+  // ============================================================
+  page_init_a() {
+    const d = FMGC.data;
+    const fromTo = d.fromTo || this.bracket(4) + '/' + this.bracket(4);
+    const fromToC = d.fromTo ? 'c-cyan' : 'c-amber';
+    const flt = d.fltNbr || '';
+    const fltC = d.fltNbr ? 'c-green' : 'c-amber';
+    const ci = d.costIndex || '';
+    const ciC = d.costIndex ? 'c-cyan' : 'c-amber';
+    const crz = d.crzFL || '-----';
+    const crzC = d.crzFL ? 'c-cyan' : 'c-amber';
+    const arrows = d.fromTo ? '←→' : '';
+
+    return this.title('INIT', arrows) +
+      this.line('CO RTE', 'FROM/TO',
+        d.coRte || '', fromTo,
+        { dataColorL: 'c-amber', dataColorR: fromToC }) +
+      this.line('ALTN/CO RTE', 'INIT',
+        '----/----------', d.fromTo ? 'REQUEST*' : '',
+        { dataColorL: 'c-dim', dataColorR: 'c-amber' }) +
+      this.line('FLT NBR', '',
+        flt, '',
+        { dataColorL: fltC }) +
+      this.line('', 'WIND/TEMP>',
+        '', '',
+        { dataColorR: 'c-amber' }) +
+      this.line('COST INDEX', 'CRZ FL/TEMP',
+        ci, crz + '/---°',
+        { dataColorL: ciC, dataColorR: crzC }) +
+      this.line('TROPO', 'GND TEMP',
+        d.tropo || '36090', '---°',
+        { dataColorL: 'c-cyan', dataColorR: 'c-dim' });
+  },
+
+  page_init_b() {
+    const d = FMGC.data;
+    const c = FMGC.computed;
+    const zfw = d.zfw ? `${d.zfw}/${d.zfwcg}` : this.bracket(4) + '/' + this.bracket(4);
+    const zfwC = d.zfw ? 'c-cyan' : 'c-amber';
+    const block = d.blockFuel || this.bracket(4);
+    const blockC = d.blockFuel ? 'c-cyan' : 'c-amber';
+    const hasFuel = d.zfw && d.blockFuel;
+
+    return this.title('INIT FUEL PRED', '←→') +
+      this.line('TAXI', 'ZFW/ZFWCG',
+        d.taxiFuel || '0.2', zfw,
+        { dataColorL: 'c-cyan', dataColorR: zfwC }) +
+      this.line('TRIP/TIME', 'BLOCK',
+        hasFuel ? `${FMGC.ofp.tripFuel}/${FMGC.ofp.tripTime}` : '---/----', block,
+        { dataColorL: 'c-green', dataColorR: blockC }) +
+      this.line('RTE RSV/%', 'TOW/LW',
+        hasFuel ? `${FMGC.ofp.rteRsv}/${FMGC.ofp.rteRsvPct}` : '---/---',
+        hasFuel ? `${c.tow.toFixed(1)}/${c.lw.toFixed(1)}` : '---/---',
+        { dataColorL: 'c-cyan', dataColorR: 'c-green' }) +
+      this.line('ALTN/TIME', 'TRIP WIND',
+        hasFuel ? `${FMGC.ofp.altnFuel}/${FMGC.ofp.altnTime}` : '---/----', d.tripWind || 'HD000',
+        { dataColorL: 'c-green', dataColorR: 'c-dim' }) +
+      this.line('FINAL/TIME', 'EXTRA/TIME',
+        hasFuel ? `${FMGC.ofp.finalFuel}/${FMGC.ofp.finalTime}` : '---/----', hasFuel ? '0.0/0000' : '---/----',
+        { dataColorL: 'c-cyan', dataColorR: 'c-dim' }) +
+      this.line('MIN DEST FOB', '',
+        hasFuel ? FMGC.ofp.minDestFob : '---', '',
+        { dataColorL: 'c-cyan' });
+  },
+
+  page_fplan() {
+    const d = FMGC.data;
+    if (!d.depRwy) {
+      // Empty fplan
+      return this.title(`${d.fromTo ? d.fromTo.split('/')[0] : 'KSEA'}          ${d.fromTo ? d.fromTo.split('/')[1] : 'KPDX'}`) +
+        this.line('', '', d.fromTo ? d.fromTo.split('/')[0] : 'KSEA', '', { dataColorL: 'c-green' }) +
+        this.line('PPOS', '', '------', '', { dataColorL: 'c-green' }) +
+        this.line('', '', '', '') +
+        this.line('', '', '', '') +
+        this.line('', '', '', '') +
+        this.line('DEST', 'DIST  TIME',
+          d.fromTo ? d.fromTo.split('/')[1] : 'KPDX',
+          d.fplanBuilt ? `${FMGC.ofp.gndDist}  ${FMGC.ofp.tripTime}` : '---  ----',
+          { dataColorL: 'c-green', dataColorR: 'c-green' });
+    }
+
+    // Route populated
+    const wpts = d.fplanBuilt ? d.routeWaypoints : d.routeWaypoints.length > 0 ? d.routeWaypoints : [];
+    const depLabel = d.depSid ? d.depSid : '';
+    const lines = [];
+
+    // Line 1: Departure
+    lines.push(this.line(
+      `${d.fromTo ? d.fromTo.split('/')[0] : 'KSEA'}  ${d.depRwy}`, '',
+      `RWY${d.depRwy}`, `---°`,
+      { dataColorL: 'c-green', dataColorR: 'c-white', dataSizeR: 'small' }
+    ));
+
+    // Waypoints (show up to 4)
+    const showWpts = wpts.slice(FMGC.nav.fplanScroll, FMGC.nav.fplanScroll + 4);
+    const starIdx = FMGC.ofp.route.length; // index where STAR waypoints start
+
+    for (let i = 0; i < 4; i++) {
+      const wpt = showWpts[i];
+      if (wpt) {
+        const isStarWpt = d.arrStar && FMGC.ofp.starWaypoints.includes(wpt);
+        const prefix = (i === 0 && isStarWpt && !FMGC.ofp.starWaypoints.includes(showWpts[Math.max(0,i-1)])) ? d.arrStar : '';
+        lines.push(this.line(
+          prefix, '',
+          wpt, '150/M.54',
+          { labelColorL: 'c-white', dataColorL: 'c-green', dataColorR: 'c-cyan', dataSizeR: 'small' }
+        ));
+      } else {
+        lines.push(this.line('', '', '', ''));
+      }
+    }
+
+    // Destination
+    lines.push(this.line(
+      'DEST', 'DIST  TIME',
+      `${d.fromTo ? d.fromTo.split('/')[1] : 'KPDX'}  ${d.arrRwy || ''}`,
+      d.fplanBuilt ? `${FMGC.ofp.gndDist}  ${FMGC.ofp.tripTime}` : '---  ----',
+      { dataColorL: 'c-green', dataColorR: 'c-green' }
+    ));
+
+    return this.title(`${d.fromTo ? d.fromTo.split('/')[0] : 'KSEA'}          ${d.fromTo ? d.fromTo.split('/')[1] : 'KPDX'}`) + lines.join('');
+  },
+
+  page_fplan_dep() {
+    return this.title('KSEA DEPARTURE RWY') +
+      this.line('', '', '34L', '9426 FT', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' }) +
+      this.line('', '', '34C', '9426 FT', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' }) +
+      this.line('', '', '34R', '11901 FT', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' }) +
+      this.line('', '', '16L', '11901 FT', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' }) +
+      this.line('', '', '16C', '9426 FT', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' }) +
+      this.line('', '', '16R', '8500 FT', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' });
+  },
+
+  page_fplan_dep_sid() {
+    return this.title(`KSEA  RWY${FMGC.data.depRwy}  SID`) +
+      this.line('', '', 'NO SID', '', { dataColorL: 'c-cyan' }) +
+      this.line('', '', 'OZWLD1', '', { dataColorL: 'c-cyan' }) +
+      this.line('', '', 'ELMAA5', '', { dataColorL: 'c-cyan' }) +
+      this.line('', '', 'BANGR9', '', { dataColorL: 'c-cyan' }) +
+      this.line('', '', '', '') +
+      this.line('RETURN', '', '←', '', { dataColorL: 'c-amber' });
+  },
+
+  page_fplan_arr() {
+    return this.title('KPDX ARRIVAL STAR') +
+      this.line('', '', 'KRATR2', '', { dataColorL: 'c-cyan' }) +
+      this.line('', '', 'HAWKZ8', '', { dataColorL: 'c-cyan' }) +
+      this.line('', '', 'NO STAR', '', { dataColorL: 'c-cyan' }) +
+      this.line('', '', '', '') +
+      this.line('', '', '', '') +
+      this.line('RETURN', '', '←', '', { dataColorL: 'c-amber' });
+  },
+
+  page_fplan_arr_rwy() {
+    return this.title(`KPDX  ${FMGC.data.arrStar || ''}  RWY`) +
+      this.line('', '', '28L', '11000 FT ILS', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' }) +
+      this.line('', '', '28R', '9290 FT ILS', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' }) +
+      this.line('', '', '10L', '8535 FT ILS', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' }) +
+      this.line('', '', '10R', '11000 FT ILS', { dataColorL: 'c-cyan', dataColorR: 'c-white', dataSizeR: 'small' }) +
+      this.line('', '', '', '') +
+      this.line('RETURN', '', '←', '', { dataColorL: 'c-amber' });
+  },
+
+  page_perf_takeoff() {
+    const d = FMGC.data;
+    const v1 = d.v1 || this.bracket(3);
+    const vr = d.vr || this.bracket(3);
+    const v2 = d.v2 || this.bracket(3);
+    const flex = d.flexTemp ? d.flexTemp + '°' : this.bracket(2) + '°';
+    const v1c = d.v1 ? 'c-cyan' : 'c-amber';
+    const vrc = d.vr ? 'c-cyan' : 'c-amber';
+    const v2c = d.v2 ? 'c-cyan' : 'c-amber';
+    const fc = d.flexTemp ? 'c-cyan' : 'c-amber';
+    const flaps = d.flaps ? `${d.flaps}/${d.ths || '----'}` : '---/----';
+    const flapRetr = d.v1 ? `F=${FMGC.ofp.flapRetr}` : '---';
+    const sltRetr = d.vr ? `O=${FMGC.ofp.sltRetr}` : '---';
+    const clean = d.v2 ? `S=${FMGC.ofp.cleanSpd}` : '---';
+
+    return this.title('TAKE OFF') +
+      this.line('V1    FLP RETR', `RWY ${d.depRwy || '---'}`,
+        `${v1}   ${flapRetr}`, '',
+        { dataColorL: v1c }) +
+      this.line('VR    SLT RETR', 'TRANS ALT',
+        `${vr}   ${sltRetr}`, d.transAlt || '18000',
+        { dataColorL: vrc, dataColorR: 'c-cyan' }) +
+      this.line('V2    CLEAN', 'THR RED/ACC',
+        `${v2}   ${clean}`, d.thrRedAcc || '----/----',
+        { dataColorL: v2c, dataColorR: 'c-cyan' }) +
+      this.line('TO SHIFT', 'ENG OUT ACC',
+        d.toShift || '----M', d.engOutAcc || '----',
+        { dataColorL: 'c-dim', dataColorR: 'c-cyan' }) +
+      this.line('FLAPS/THS', 'FLEX TO TEMP',
+        flaps, flex,
+        { dataColorL: 'c-cyan', dataColorR: fc }) +
+      this.line('', 'NEXT',
+        '', 'PHASE>',
+        { dataColorR: 'c-amber' });
+  },
+
+  page_radnav() {
+    const d = FMGC.data;
+    return this.title('RADIO NAV') +
+      this.line('VOR1/FREQ', 'CRS',
+        d.vor1Freq || this.bracket(6), d.vor1Crs || '---',
+        { dataColorL: d.vor1Freq ? 'c-cyan' : 'c-amber', dataColorR: 'c-dim' }) +
+      this.line('', '',
+        '', '') +
+      this.line('ILS/FREQ', 'CRS',
+        d.ilsFreq || this.bracket(6), d.ilsCrs || '---',
+        { dataColorL: d.ilsFreq ? 'c-cyan' : 'c-amber', dataColorR: d.ilsCrs ? 'c-cyan' : 'c-dim' }) +
+      this.line('', '', '', '') +
+      this.line('VOR2/FREQ', 'CRS',
+        this.bracket(6), '---',
+        { dataColorL: 'c-amber', dataColorR: 'c-dim' }) +
+      this.line('ADF1/FREQ', 'ADF2/FREQ',
+        this.bracket(6), this.bracket(6),
+        { dataColorL: 'c-amber', dataColorR: 'c-amber' });
+  },
+
+  page_placeholder(page) {
+    const name = page.toUpperCase().replace(/-/g, ' ');
+    return this.title(name) +
+      this.line('', '', '', '') +
+      this.line('', '', '', '') +
+      this.line('', 'PAGE NOT', '', '') +
+      this.line('', 'IMPLEMENTED', '', '') +
+      this.line('', '', '', '') +
+      this.line('', '', '', '');
+  },
+};
+
+// ============================================================
+// KEYBOARD INPUT
+// ============================================================
+let clearTimer = null;
+let clearPressTime = 0;
+
+function handleClear() {
+  FMGC.spClear();
+  Renderer.render();
+}
+
+function handleOvfy() {
+  // Placeholder
+}
+
+document.addEventListener('keydown', (e) => {
+  const key = e.key;
+  if (key === 'Backspace') {
+    e.preventDefault();
+    FMGC.spClear();
+    Renderer.render();
+  } else if (key === 'Delete') {
+    e.preventDefault();
+    FMGC.spClearAll();
+    Renderer.render();
+  } else if (key === 'Escape') {
+    FMGC.spClearAll();
+    Renderer.render();
+  } else if (key.length === 1 && /[A-Za-z0-9\/. ]/.test(key)) {
+    FMGC.spType(key.toUpperCase());
+    Renderer.render();
+  }
+});
+
+// ============================================================
+// WIRE UP FMGC EVENTS → RENDER
+// ============================================================
+FMGC.on('pageChange', () => Renderer.render());
+FMGC.on('dataChange', () => Renderer.render());
+FMGC.on('scratchpadChange', () => Renderer.render());
+FMGC.on('reset', () => Renderer.render());
+
+// ============================================================
+// INIT
+// ============================================================
+Tutorial.init();
+Renderer.render();
+</script>
+
+</body>
+</html>
