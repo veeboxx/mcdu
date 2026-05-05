@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A320 Cold & Dark Startup Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #1a1f2e;
+            color: #e0e6ed;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            background: #243447;
+            border: 2px solid #4a90e2;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        h1 {
+            font-size: 2em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #4a90e2;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #243447;
+            border: 2px solid #4a90e2;
+            border-radius: 4px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a90e2, #5ba3f5);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        button {
+            background: #243447;
+            color: #4a90e2;
+            border: 2px solid #4a90e2;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-size: 14px;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #4a90e2;
+            color: #fff;
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .stage {
+            display: none;
+            background: #243447;
+            border: 2px solid #4a90e2;
+            border-radius: 4px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .stage.active {
+            display: block;
+        }
+
+        .stage h2 {
+            color: #5ba3f5;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .instruction-box {
+            background: #2d4a64;
+            border-left: 4px solid #5ba3f5;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+
+        .instruction-box h3 {
+            color: #5ba3f5;
+            margin-bottom: 10px;
+        }
+
+        .step-counter {
+            display: inline-block;
+            background: #4a90e2;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .overhead-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .panel-button {
+            background: #2d3744;
+            border: 2px solid #3d4f64;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        .panel-button.active {
+            border-color: #4a90e2;
+            background: #334a64;
+        }
+
+        .panel-button.correct {
+            border-color: #7ec699;
+            background: #2d4a3a;
+        }
+
+        .panel-button.warning {
+            border-color: #f5a623;
+        }
+
+        .panel-button.error {
+            border-color: #d0021b;
+            animation: shake 0.5s;
+        }
+
+        .panel-button.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .light {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a1f2e;
+            margin: 10px auto;
+            border: 2px solid #3d4f64;
+            transition: all 0.3s;
+        }
+
+        .light.on {
+            background: #4a90e2;
+            box-shadow: 0 0 10px #4a90e2;
+            border-color: #4a90e2;
+        }
+
+        .light.amber {
+            background: #f5a623;
+            box-shadow: 0 0 10px #f5a623;
+            border-color: #f5a623;
+        }
+
+        .light.white {
+            background: #ffffff;
+            box-shadow: 0 0 10px #ffffff;
+            border-color: #ffffff;
+        }
+
+        .light.green {
+            background: #7ec699;
+            box-shadow: 0 0 10px #7ec699;
+            border-color: #7ec699;
+        }
+
+        .info-box {
+            background: #1e3a4a;
+            border-left: 4px solid #4a90e2;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+
+        .warning-box {
+            background: #4a3a1e;
+            border-left: 4px solid #f5a623;
+            padding: 15px;
+            margin: 15px 0;
+            color: #f5d88a;
+            border-radius: 3px;
+        }
+
+        .error-box {
+            background: #4a1e1e;
+            border-left: 4px solid #d0021b;
+            padding: 15px;
+            margin: 15px 0;
+            color: #f5a3a3;
+            border-radius: 3px;
+            display: none;
+        }
+
+        .success-box {
+            background: #1e4a2e;
+            border-left: 4px solid #7ec699;
+            padding: 15px;
+            margin: 15px 0;
+            color: #a3f5c3;
+            border-radius: 3px;
+            display: none;
+        }
+
+        .next-step {
+            background: #2d4a64;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            border: 2px dashed #4a90e2;
+        }
+
+        .flashcard-container {
+            perspective: 1000px;
+            margin: 20px 0;
+        }
+
+        .flashcard {
+            background: #243447;
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            padding: 40px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .mcdu-container {
+            background: #2d3744;
+            border: 3px solid #3d4f64;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .mcdu-screen {
+            background: #0a0e14;
+            border: 2px solid #1a1f2e;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            min-height: 300px;
+            margin-bottom: 20px;
+            border-radius: 3px;
+        }
+
+        .mcdu-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #1a1f2e;
+        }
+
+        .mcdu-title {
+            color: #5ba3f5;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .mcdu-label {
+            color: #7ec699;
+            font-size: 0.9em;
+        }
+
+        .mcdu-value {
+            color: #f5a623;
+        }
+
+        .mcdu-input {
+            background: #243447;
+            border: 1px solid #4a90e2;
+            color: #e0e6ed;
+            padding: 5px;
+            font-family: 'Courier New', monospace;
+            width: 150px;
+            border-radius: 3px;
+        }
+
+        .mcdu-scratchpad {
+            background: #1a1f2e;
+            border: 2px solid #4a90e2;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            color: #f5a623;
+            min-height: 30px;
+        }
+
+        .mcdu-lsk {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .lsk-button {
+            background: #2d3744;
+            border: 2px solid #4a90e2;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .lsk-button:hover {
+            background: #3d4f64;
+        }
+
+        .stage-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stage-tab {
+            background: #243447;
+            border: 2px solid #3d4f64;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .stage-tab.completed {
+            border-color: #7ec699;
+        }
+
+        .stage-tab.active {
+            background: #4a90e2;
+            color: #fff;
+            border-color: #4a90e2;
+        }
+
+        @media (max-width: 768px) {
+            .overhead-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Airbus A320 Cold & Dark Startup</h1>
+            <p>Interactive Tutorial & Practice System</p>
+        </header>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar">0%</div>
+        </div>
+
+        <div class="nav-buttons">
+            <button id="prevBtn" onclick="changeStage(-1)">Previous</button>
+            <button id="resetBtn" onclick="resetTutorial()">Reset</button>
+            <button onclick="showFlashcards()">Practice Cards</button>
+            <button id="nextBtn" onclick="changeStage(1)">Next</button>
+        </div>
+
+        <div class="stage-tabs" id="stageTabs"></div>
+
+        <!-- STAGE 1: FLIGHT PLANNING -->
+        <div class="stage active" id="stage1">
+            <h2>Stage 1: Flight Planning</h2>
+            
+            <div class="instruction-box">
+                <h3>What We're Doing</h3>
+                <p>Before arriving at the aircraft, we need to plan our flight. This includes route, performance calculations, and loading data. In the real world, this is often pre-computed by dispatch, but we'll enter it manually to understand the process.</p>
+            </div>
+
+            <div class="info-box">
+                <strong>Enter your flight details below.</strong> These will automatically populate the MCDU (Multi-function Control and Display Unit) in later stages. For now, just fill in the form and save.
+            </div>
+
+            <div style="background: #243447; border: 2px solid #4a90e2; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                <h3 style="color: #5ba3f5; margin-bottom: 15px;">Flight Plan Entry</h3>
+                
+                <label style="display: block; margin-top: 10px;">Departure Airport (ICAO):</label>
+                <input type="text" id="departure" placeholder="EHAM" maxlength="4" value="EHAM" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Arrival Airport (ICAO):</label>
+                <input type="text" id="arrival" placeholder="LIRF" maxlength="4" value="LIRF" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Departure Runway:</label>
+                <input type="text" id="depRunway" placeholder="25R" value="25R" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Arrival Runway:</label>
+                <input type="text" id="arrRunway" placeholder="16L" value="16L" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Flight Number:</label>
+                <input type="text" id="flightNumber" placeholder="SIM245" value="SIM245" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Cruise Flight Level:</label>
+                <input type="number" id="cruiseFL" placeholder="330" value="330" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Cost Index (0-99, typical 15-30):</label>
+                <input type="number" id="costIndex" placeholder="17" value="17" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Zero Fuel Weight (tons):</label>
+                <input type="number" id="zfw" step="0.1" placeholder="56.7" value="56.7" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Zero Fuel CG (% MAC):</label>
+                <input type="number" id="zfcg" step="0.1" placeholder="31.3" value="31.3" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Block Fuel (tons):</label>
+                <input type="number" id="blockFuel" step="0.1" placeholder="5.3" value="5.3" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <label style="display: block; margin-top: 10px;">Flex Temperature (°C):</label>
+                <input type="number" id="flexTemp" placeholder="68" value="68" style="background: #1a1f2e; border: 1px solid #4a90e2; color: #e0e6ed; padding: 8px; margin: 5px 0; width: 100%; border-radius: 3px;">
+                
+                <button onclick="saveFlightPlan()" style="margin-top: 15px; width: 100%;">Save Flight Plan</button>
+            </div>
+
+            <div class="success-box" id="flightPlanSaved">
+                <strong>Flight Plan Saved Successfully!</strong>
+                <div id="summaryText" style="margin-top: 10px;"></div>
+            </div>
+
+            <div class="next-step" id="stage1Next" style="display: none;">
+                <strong>Next Step:</strong> Click "Next" to proceed to the overhead panel safety checks.
+            </div>
+        </div>
+
+        <!-- STAGE 2: SAFETY CHECKS -->
+        <div class="stage" id="stage2">
+            <h2>Stage 2: Safety Checks Before Applying Power</h2>
+            
+            <div class="instruction-box">
+                <h3>Why We Do This</h3>
+                <p>Before we turn on electrical power, we must verify the aircraft is in a safe state. If certain switches are in the wrong position, applying power could cause equipment to start moving or activate unexpectedly, which could damage the aircraft or injure ground crew.</p>
+            </div>
+
+            <div class="instruction-box">
+                <h3><span class="step-counter">Step 1</span>Check Battery Voltage</h3>
+                <p>Click on BATTERY 1 and BATTERY 2 below. The voltage should read above 25.5V on both. This ensures we have enough battery power to start systems.</p>
+            </div>
+
+            <div class="error-box" id="batteryError">Wrong action! Check battery voltage first by clicking the battery panels.</div>
+            <div class="success-box" id="batterySuccess">Good! Both batteries show adequate voltage (>25.5V).</div>
+
+            <h3>Overhead Panel - Click to Check</h3>
+            <div class="overhead-panel">
+                <div class="panel-button" id="bat1Check" onclick="checkBattery(1)">
+                    <div>BATTERY 1</div>
+                    <div class="light" id="bat1Light"></div>
+                    <div id="bat1Voltage">25.8V</div>
+                </div>
+                
+                <div class="panel-button" id="bat2Check" onclick="checkBattery(2)">
+                    <div>BATTERY 2</div>
+                    <div class="light" id="bat2Light"></div>
+                    <div id="bat2Voltage">26.1V</div>
+                </div>
+
+                <div class="panel-button disabled" id="extPwrPanel">
+                    <div>EXT POWER</div>
+                    <div class="light on green" id="extPwrAvailLight"></div>
+                    <div>AVAIL</div>
+                </div>
+
+                <div class="panel-button disabled" id="apuMasterPanel">
+                    <div>APU MASTER</div>
+                    <div class="light" id="apuMLight"></div>
+                    <div>OFF</div>
+                </div>
+            </div>
+
+            <div class="next-step" id="stage2Next" style="display: none;">
+                <strong>Batteries Checked!</strong> In the real aircraft, you would now walk around and verify:<br>
+                • Landing gear lever - DOWN<br>
+                • Engine master switches - OFF<br>
+                • Weather radar - OFF<br>
+                • Wiper selectors - OFF (both)<br><br>
+                Click "Next" to power up the aircraft.
+            </div>
+        </div>
+
+        <!-- Add remaining stages... continuing in next file -->
+        <div class="stage" id="stage3">
+            <h2>Stage 3: Power On Sequence</h2>
+            
+            <div class="instruction-box">
+                <h3>Power-Up Procedure</h3>
+                <p>We'll now bring the aircraft to life in a specific sequence. The order matters!</p>
+            </div>
+
+            <div class="instruction-box" id="powerStep1">
+                <h3><span class="step-counter">Step 1</span>Turn Batteries to AUTO</h3>
+                <p>Click BATTERY 1, then BATTERY 2 to set them to AUTO. This connects the batteries to the electrical system.</p>
+            </div>
+
+            <div class="instruction-box" id="powerStep2" style="display: none;">
+                <h3><span class="step-counter">Step 2</span>Connect External Power</h3>
+                <p>Click EXT POWER ON to connect ground power. You'll see systems start to power up.</p>
+            </div>
+
+            <div class="instruction-box" id="powerStep3" style="display: none;">
+                <h3><span class="step-counter">Step 3</span>Start APU</h3>
+                <p>Click APU MASTER, wait 3 seconds, then click APU START. The APU (Auxiliary Power Unit) is a small jet engine in the tail that provides electrical power and air.</p>
+            </div>
+
+            <div class="error-box" id="powerError"></div>
+            <div class="success-box" id="powerSuccess"></div>
+
+            <div class="overhead-panel">
+                <div class="panel-button" id="bat1Power" onclick="toggleBattery(1)">
+                    <div>BAT 1</div>
+                    <div class="light" id="bat1PowerLight"></div>
+                    <div id="bat1State">OFF</div>
+                </div>
+                
+                <div class="panel-button" id="bat2Power" onclick="toggleBattery(2)">
+                    <div>BAT 2</div>
+                    <div class="light" id="bat2PowerLight"></div>
+                    <div id="bat2State">OFF</div>
+                </div>
+
+                <div class="panel-button disabled" id="extPwrBtn" onclick="toggleExtPower()">
+                    <div>EXT POWER</div>
+                    <div class="light green on"></div>
+                    <div id="extPwrState">AVAIL</div>
+                </div>
+
+                <div class="panel-button disabled" id="apuMasterBtn" onclick="toggleApuMaster()">
+                    <div>APU MASTER</div>
+                    <div class="light" id="apuMasterLight"></div>
+                    <div id="apuMasterState">OFF</div>
+                </div>
+
+                <div class="panel-button disabled" id="apuStartBtn" onclick="toggleApuStart()">
+                    <div>APU START</div>
+                    <div class="light" id="apuStartLight"></div>
+                    <div id="apuStartState">OFF</div>
+                </div>
+
+                <div class="panel-button" id="apuBleedPanel">
+                    <div>APU BLEED</div>
+                    <div class="light" id="apuBleedLight"></div>
+                    <div id="apuBleedState">OFF</div>
+                </div>
+            </div>
+
+            <div class="warning-box" id="apuWait3sec" style="display: none;">
+                Wait 3 seconds after APU MASTER before pressing START...
+            </div>
+
+            <div class="next-step" id="stage3Next" style="display: none;">
+                <strong>APU Running!</strong> The aircraft now has power from the APU. Click "Next" to program the MCDU.
+            </div>
+        </div>
+
+        <!-- Flashcard Modal -->
+        <div id="flashcardModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; overflow: auto;">
+            <div style="max-width: 800px; margin: 50px auto; padding: 30px;">
+                <button onclick="closeFlashcards()" style="float: right;">Close Practice</button>
+                <h2 style="text-align: center; color: #5ba3f5; margin-bottom: 30px;">A320 Startup Flashcards</h2>
+                
+                <div id="flashcardProgress" style="text-align: center; margin-bottom: 20px; color: #e0e6ed;"></div>
+                
+                <div class="flashcard-container">
+                    <div class="flashcard" id="currentCard" onclick="flipCard()">
+                        <div class="flashcard-front">
+                            <div id="cardQuestion" style="font-size: 1.3em;"></div>
+                        </div>
+                        <div class="flashcard-back">
+                            <div id="cardAnswer" style="font-size: 1.1em; color: #7ec699;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flashcard-controls">
+                    <button onclick="rateCard('again')" style="background: #d0021b; color: #fff;">Again</button>
+                    <button onclick="rateCard('hard')" style="background: #f5a623; color: #fff;">Hard</button>
+                    <button onclick="rateCard('good')" style="background: #4a90e2; color: #fff;">Good</button>
+                    <button onclick="rateCard('easy')" style="background: #7ec699; color: #fff;">Easy</button>
+                </div>
+
+                <div style="margin-top: 30px; padding: 15px; background: #243447; border-radius: 4px;">
+                    <strong>Stats:</strong>
+                    <div id="cardStats" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="a320-startup-enhanced.js"></script>
+</body>
+</html>
